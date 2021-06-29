@@ -29,4 +29,9 @@ class Order with ChangeNotifier {
 
     notifyListeners();
   }
+
+//we need to return a list of cart items when user calls this method on an orderList index
+  List<CartModel> getOrderDetails(int i) {
+    return _ordersList.elementAt(i).cart;
+  }
 }

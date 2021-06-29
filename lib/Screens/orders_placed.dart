@@ -1,9 +1,18 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_store/providers/orders.dart';
 
-class PlacedOrders extends StatelessWidget {
+class PlacedOrders extends StatefulWidget {
   static const routeName = '/orders-placed';
+
+  @override
+  _PlacedOrdersState createState() => _PlacedOrdersState();
+}
+
+class _PlacedOrdersState extends State<PlacedOrders> {
+  var expandMore = false;
   @override
   Widget build(BuildContext context) {
     final orderData = Provider.of<Order>(context);
@@ -14,13 +23,40 @@ class PlacedOrders extends StatelessWidget {
       ),
       body: ListView.builder(
         itemBuilder: (context, index) => Card(
-          child: ListTile(
-            leading: Text('\$${orderData.ordersList[index].total}'),
-            title: Text(orderData.ordersList[index].dateTime.toString()),
-            trailing: IconButton(
-              icon: Icon(Icons.arrow_drop_down),
-              onPressed: () => null,
-            ),
+          child: Column(
+            children: [
+              ListTile(
+                title: Text('\$${orderData.ordersList[index].total}'),
+                subtitle: Text(orderData.ordersList[index].dateTime
+                    .toString()
+                    .substring(0, 16)),
+                trailing: IconButton(
+                  icon: Icon(expandMore
+                      ? Icons.arrow_drop_up_rounded
+                      : Icons.arrow_drop_down_rounded),
+                  onPressed: () {
+                    setState(() {
+                      expandMore = !expandMore;
+                    });
+                  },
+                ),
+              ),
+              if (expandMore)
+                Container(
+                  height:
+                      min(orderData.getOrderDetails(index).length * 22.5, 50),
+                  child: ListView.builder(
+                    itemBuilder: (ctx, i) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(orderData.getOrderDetails(index)[i].title),
+                        Text('${orderData.getOrderDetails(index)[i].quantity}x')
+                      ],
+                    ),
+                    itemCount: orderData.getOrderDetails(index).length,
+                  ),
+                ),
+            ],
           ),
         ),
         itemCount: orderData.ordersList.length,
