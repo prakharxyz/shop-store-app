@@ -1,10 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:shop_store/Screens/payments.dart';
 import 'package:shop_store/providers/cart.dart';
 import 'package:shop_store/providers/orders.dart';
 
-class CartOverview extends StatelessWidget {
+class CartOverview extends StatefulWidget {
   static const routeName = '/cart-overview';
+
+  @override
+  _CartOverviewState createState() => _CartOverviewState();
+}
+
+class _CartOverviewState extends State<CartOverview> {
+  Razorpay razorpay;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    razorpay = Razorpay();
+    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    print('payment successful');
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    print('payment error');
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print('External wallet');
+  }
+
+  void openCheckout() {
+    var options = {
+      'key': 'rzp_test_SO4wFiwTvQksdT',
+      'amount': 100,
+      'name': 'Acme Corp.',
+      'description': 'Fine T-Shirt',
+      'prefill': {'contact': '8888888888', 'email': 'test@razorpay.com'}
+    };
+    try {
+      razorpay.open(options);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartData = Provider.of<Cart>(context);
@@ -94,6 +142,8 @@ class CartOverview extends StatelessWidget {
                   ),
                   TextButton(
                       onPressed: () {
+                        openCheckout();
+
                         orderData.addOrder(cartItems, cartData.generateTotal);
                         cartData.clearItems();
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
