@@ -27,23 +27,33 @@ class _CartOverviewState extends State<CartOverview> {
     razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+  void _handlePaymentSuccess(
+    PaymentSuccessResponse response,
+  ) {
+    final cartData = Provider.of<Cart>(context);
+    final orderData = Provider.of<Order>(context);
     print('payment successful');
+    orderData.addOrder(cartData.cartList, cartData.generateTotal);
+    cartData.clearItems();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Order placed successfully!')));
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     print('payment error');
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Order unsuccessful, retry again!')));
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     print('External wallet');
   }
 
-  void openCheckout() {
+  void openCheckout(double amount) {
     var options = {
       'key': 'rzp_test_SO4wFiwTvQksdT',
-      'amount': 100,
-      'name': 'Acme Corp.',
+      'amount': amount.toInt() * 100,
+      'name': 'xxx',
       'description': 'Fine T-Shirt',
       'prefill': {'contact': '8888888888', 'email': 'test@razorpay.com'}
     };
@@ -143,11 +153,14 @@ class _CartOverviewState extends State<CartOverview> {
                   ),
                   TextButton(
                       onPressed: () {
-                        openCheckout();
-                        orderData.addOrder(cartItems, cartData.generateTotal);
-                        cartData.clearItems();
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Order placed successfully!')));
+                        if (cartItems.isNotEmpty) {
+                          openCheckout(cartData.generateTotal);
+
+                          // orderData.addOrder(cartItems, cartData.generateTotal);
+                          // cartData.clearItems();
+                          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          //     content: Text('Order placed successfully!')));
+                        }
                       },
                       child: Text('ORDER NOW')),
                 ],
